@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
@@ -18,57 +17,13 @@ type DynamoDBStore struct {
 	tableName string
 }
 
-//NewDynamoDBStore constructs a new DynamoDBStore
-func NewDynamoDBStore(client *dynamodb.DynamoDB, tableName string) (*DynamoDBStore, error) {
-	if err := ensureTable(client, tableName); err != nil {
-		return nil, fmt.Errorf("error ensuring table '%s': %v", tableName, err)
-	}
+//NewDynamoDBStore constructs a new DynamoDBStore. The table identified by tableName
+//should already exist.
+func NewDynamoDBStore(client *dynamodb.DynamoDB, tableName string) *DynamoDBStore {
 	return &DynamoDBStore{
 		client:    client,
 		tableName: tableName,
-	}, nil
-}
-
-func ensureTable(client *dynamodb.DynamoDB, tableName string) error {
-	dtInput := &dynamodb.DescribeTableInput{
-		TableName: &tableName,
 	}
-	_, err := client.DescribeTable(dtInput)
-	if err != nil {
-		awsErr, ok := err.(awserr.Error)
-		if !ok || awsErr.Code() != dynamodb.ErrCodeResourceNotFoundException {
-			return fmt.Errorf("error describing table '%s': %v", tableName, err)
-		}
-		if awsErr.Code() == dynamodb.ErrCodeResourceNotFoundException {
-			ctInput := &dynamodb.CreateTableInput{
-				TableName: &tableName,
-				AttributeDefinitions: []*dynamodb.AttributeDefinition{
-					{
-						AttributeName: aws.String(keyName),
-						AttributeType: aws.String("S"),
-					},
-				},
-				KeySchema: []*dynamodb.KeySchemaElement{
-					{
-						AttributeName: aws.String(keyName),
-						KeyType:       aws.String("HASH"),
-					},
-				},
-				ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-					ReadCapacityUnits:  aws.Int64(5),
-					WriteCapacityUnits: aws.Int64(5),
-				},
-			}
-			_, err := client.CreateTable(ctInput)
-			if err != nil {
-				return fmt.Errorf("error creating table '%s': %v", tableName, err)
-			}
-			if err := client.WaitUntilTableExists(dtInput); err != nil {
-				return fmt.Errorf("error waiting for table '%s' to exist: %v", tableName, err)
-			}
-		}
-	}
-	return nil
 }
 
 //Get returns the user associated with the provided userName
