@@ -19,7 +19,7 @@ func TestDynamoDBStore(t *testing.T) {
 		t.Fatalf("error creating new AWS session: %v", err)
 	}
 	client := dynamodb.New(sess)
-	store := NewDynamoDBStore(client, "users")
+	store := NewDynamoDBStore(client, "users", "userName")
 	if err != nil {
 		t.Fatalf("error creating DynamoDBStore: %v", err)
 	}

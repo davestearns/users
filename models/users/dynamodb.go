@@ -9,20 +9,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-const keyName = "userName"
-
 //DynamoDBStore is an implementation of the Store interface for AWS DynamoDB
 type DynamoDBStore struct {
 	client    *dynamodb.DynamoDB
 	tableName string
+	keyName   string
 }
 
 //NewDynamoDBStore constructs a new DynamoDBStore. The table identified by tableName
 //should already exist.
-func NewDynamoDBStore(client *dynamodb.DynamoDB, tableName string) *DynamoDBStore {
+func NewDynamoDBStore(client *dynamodb.DynamoDB, tableName string, keyName string) *DynamoDBStore {
 	return &DynamoDBStore{
 		client:    client,
 		tableName: tableName,
+		keyName:   keyName,
 	}
 }
 
@@ -111,5 +111,5 @@ func (d *DynamoDBStore) Delete(userName string) error {
 }
 
 func (d *DynamoDBStore) getKey(userName string) map[string]*dynamodb.AttributeValue {
-	return map[string]*dynamodb.AttributeValue{keyName: {S: aws.String(userName)}}
+	return map[string]*dynamodb.AttributeValue{d.keyName: {S: aws.String(userName)}}
 }
