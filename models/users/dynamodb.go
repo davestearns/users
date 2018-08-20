@@ -49,6 +49,12 @@ func (d *DynamoDBStore) Insert(user *User) error {
 	if err != nil {
 		return fmt.Errorf("error encoding user: %v", err)
 	}
+
+	//defensive check: ensure vals contains an entry for the key name
+	if _, found := vals[d.keyName]; !found {
+		vals[d.keyName] = &dynamodb.AttributeValue{S: aws.String(user.UserName)}
+	}
+
 	input := &dynamodb.PutItemInput{
 		TableName: aws.String(d.tableName),
 		Item:      vals,

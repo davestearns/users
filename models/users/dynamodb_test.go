@@ -12,9 +12,7 @@ import (
 )
 
 func TestDynamoDBStore(t *testing.T) {
-	sess, err := session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	})
+	sess, err := session.NewSession()
 	if err != nil {
 		t.Fatalf("error creating new AWS session: %v", err)
 	}
