@@ -17,20 +17,20 @@ type NewUser struct {
 	//Required Fields
 
 	//UserName is the unique screen name for this user
-	UserName string `json:"userName,omitempty"`
+	UserName string `json:"userName"`
 	//Password is the user's password
-	Password string `json:"password,omitempty"`
+	Password string `json:"password"`
 
 	//Optional Fields
 
 	//PersonalName is the user's personal (first) name
-	PersonalName string `json:"personalName,omitempty"`
+	PersonalName string `json:"personalName"`
 	//FamilyName is he user's family (last) name
-	FamilyName string `json:"familyName,omitempty"`
+	FamilyName string `json:"familyName"`
 	//Email is the user's email address
-	Email string `json:"email,omitempty"`
+	Email string `json:"email"`
 	//Mobile is the user's mobile/SMS number
-	Mobile string `json:"mobile,omitempty"`
+	Mobile string `json:"mobile"`
 }
 
 //Validate validates the NewUser
@@ -66,6 +66,7 @@ func (nu *NewUser) ToUser() (*User, error) {
 		return nil, fmt.Errorf("error generating password hash: %v", err)
 	}
 	return &User{
+		UserName:     nu.UserName,
 		Email:        nu.Email,
 		PasswordHash: passhash,
 		PersonalName: nu.PersonalName,
@@ -75,12 +76,26 @@ func (nu *NewUser) ToUser() (*User, error) {
 
 //User represents a user account stored in the system
 type User struct {
-	UserName     string `json:"userName,omitempty"`
+	UserName     string `json:"userName"`
 	PasswordHash []byte `json:"-" dynamodbav:"passwordHash"`
 	PersonalName string `json:"personalName,omitempty"`
 	FamilyName   string `json:"familyName,omitempty"`
 	Email        string `json:"-" dynamodbav:"email,omitempty"`
 	Mobile       string `json:"-" dynamodbav:"mobile,omitempty"`
+}
+
+//Authenticate authenticates the user using the provided password
+func (u *User) Authenticate(password []byte) error {
+	return bcrypt.CompareHashAndPassword(u.PasswordHash, password)
+}
+
+//DummyAuthenticate consumes about the same amount of time
+//as user.Authenticate() does, but does nothing. This should
+//be used during sign-in when the provided userName is not found,
+//so that an attacker can't see a difference in response time
+//between an invalid userName and a valid userName with invalid password.
+func DummyAuthenticate() {
+	bcrypt.GenerateFromPassword([]byte("dummy password"), bcryptCost)
 }
 
 //Updates represents updates to a user profile sent by the client.
@@ -90,4 +105,10 @@ type Updates struct {
 	FamilyName   *string `json:"familyName,omitempty"`
 	Email        *string `json:"email,omitempty"`
 	Mobile       *string `json:"mobile,omitempty"`
+}
+
+//Credentials represents a user's sign-in credentials
+type Credentials struct {
+	UserName string `json:"userName,omitempty"`
+	Password string `json:"password,omitempty"`
 }

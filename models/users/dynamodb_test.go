@@ -31,6 +31,11 @@ func TestDynamoDBStore(t *testing.T) {
 		Email:        "test@test.com",
 		Mobile:       "206-555-1212",
 	}
+
+	if _, err := store.Get(user.UserName); err == nil {
+		t.Errorf("did not receive expected error when getting user that does not exist")
+	}
+
 	if err := store.Insert(user); err != nil {
 		t.Errorf("error inserting new user: %v", err)
 	}

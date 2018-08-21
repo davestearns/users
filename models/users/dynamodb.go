@@ -36,6 +36,9 @@ func (d *DynamoDBStore) Get(userName string) (*User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting user: %v", err)
 	}
+	if result.Item == nil {
+		return nil, nil
+	}
 	user := &User{}
 	if err := dynamodbattribute.UnmarshalMap(result.Item, user); err != nil {
 		return nil, fmt.Errorf("error decoding user record: %v", err)

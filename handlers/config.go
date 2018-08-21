@@ -1,8 +1,12 @@
 package handlers
 
-import "github.com/davestearns/sessions"
+import (
+	"github.com/davestearns/sessions"
+	"github.com/davestearns/userservice/models/users"
+)
 
 //Config holds the global configuration values for handlers
 type Config struct {
-	Manager sessions.Manager
+	SessionManager sessions.Manager
+	UserStore      users.Store
 }
