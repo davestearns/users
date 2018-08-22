@@ -1,11 +1,6 @@
 provider "aws" {
 }
 
-variable "session-keys" {
-    type = "string"
-    description = "a comma-delimeted list of session signing keys"
-}
-
 data "aws_vpc" "default-vpc" {
     default = true
 }
@@ -58,10 +53,6 @@ data "aws_iam_policy_document" "user-service-role-policy" {
     }
 }
 
-data "aws_iam_policy" "AmazonDynamoDBFullAccess" {
-    arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
-}
-
 resource "aws_iam_role" "user-service-role" {
     name = "user-service-role"
     assume_role_policy = "${data.aws_iam_policy_document.user-service-role-policy.json}"
@@ -69,7 +60,12 @@ resource "aws_iam_role" "user-service-role" {
 
 resource "aws_iam_role_policy_attachment" "user-service-role-attach-dynamodb" {
     role = "${aws_iam_role.user-service-role.name}"
-    policy_arn = "${data.aws_iam_policy.AmazonDynamoDBFullAccess.arn}"
+    policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "user-service-role-attach-secrets" {
+    role = "${aws_iam_role.user-service-role.name}"
+    policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
 }
 
 # ECS Task Definition
@@ -84,10 +80,6 @@ resource "aws_ecs_task_definition" "users-taskdef" {
     "image": "davestearns/userservice",
     "portMappings": [{"containerPort": 80, "hostPort": 80, "protocol": "tcp"}],
     "environment": [
-        {
-            "name": "SESSION_KEYS", 
-            "value": "${var.session-keys}"
-        },
         {
             "name": "REDIS_ADDR", 
             "value": "${aws_elasticache_cluster.session-cache.cache_nodes.0.address}:${aws_elasticache_cluster.session-cache.cache_nodes.0.port}"
