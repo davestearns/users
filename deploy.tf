@@ -1,6 +1,11 @@
 provider "aws" {
 }
 
+variable "session-keys" {
+    type = "string"
+    description = "a comma-delimeted list of session signing keys"
+}
+
 data "aws_vpc" "default-vpc" {
     default = true
 }
@@ -81,7 +86,7 @@ resource "aws_ecs_task_definition" "users-taskdef" {
     "environment": [
         {
             "name": "SESSION_KEYS", 
-            "value": "B61AC661-BEDC-46C0-909F-CF73D6EAB222"
+            "value": "${var.session-keys}"
         },
         {
             "name": "REDIS_ADDR", 
