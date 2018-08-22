@@ -10,7 +10,7 @@ import (
 
 //bcryptCost is the cost factor used when generating bcrypt password hashes.
 //This is a var and not a const so that automated tests can set it to the minimum.
-var bcryptCost = 14
+var bcryptCost = bcrypt.DefaultCost
 
 //NewUser represents a new user being added to the system
 type NewUser struct {

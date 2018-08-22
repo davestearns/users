@@ -45,8 +45,11 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("/", handlers.RootHandler)
 	mux.HandleFunc("/users", handlerConfig.UsersHandler)
 	mux.HandleFunc("/users/", handlerConfig.EnsureSession(handlerConfig.SpecificUserHandler))
+	mux.HandleFunc("/sessions", handlerConfig.SessionsHandler)
+	mux.HandleFunc("/sessions/mine", handlerConfig.SessionsMineHandler)
 
 	log.Printf("server is listening at http://%s...", cfg.Addr)
 	log.Fatal(http.ListenAndServe(cfg.Addr, mux))
