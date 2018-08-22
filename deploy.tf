@@ -75,8 +75,14 @@ resource "aws_ecs_task_definition" "users-taskdef" {
     "image": "davestearns/userservice",
     "portMappings": [{"containerPort": 80, "hostPort": 80, "protocol": "tcp"}],
     "environment": [
-        {"name": "SESSION_KEYS", "value": "B61AC661-BEDC-46C0-909F-CF73D6EAB222"},
-        {"name": "REDIS_ADDR", "value": "${aws_elasticache_cluster.session-cache.cache_nodes.0.address}"}
+        {
+            "name": "SESSION_KEYS", 
+            "value": "B61AC661-BEDC-46C0-909F-CF73D6EAB222"
+        },
+        {
+            "name": "REDIS_ADDR", 
+            "value": "${aws_elasticache_cluster.session-cache.cache_nodes.0.address}:${aws_elasticache_cluster.session-cache.cache_nodes.0.port}"
+        }
     ]
 }]
 EOF
