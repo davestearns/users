@@ -1,8 +1,12 @@
 provider "aws" {
 }
 
-resource "aws_default_subnet" "default_subnet_az1" {
-    availability_zone = "us-west-2a"    
+data "aws_vpc" "default-vpc" {
+    default = true
+}
+
+data "aws_subnet_ids" "default-vpc-subnets" {
+    vpc_id = "${data.aws_vpc.default-vpc.id}"
 }
 
 # users table
@@ -124,7 +128,7 @@ resource "aws_ecs_service" "user-serivce" {
     desired_count = 1
     launch_type = "FARGATE"
     network_configuration = {
-        subnets = ["${aws_default_subnet.default_subnet_az1.id}"]
+        subnets = ["${data.aws_subnet_ids.default-vpc-subnets.ids}"]
         security_groups = ["${aws_security_group.user-service-sg.id}"]
         assign_public_ip = true
     }
