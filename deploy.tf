@@ -103,6 +103,58 @@ resource "aws_ecs_cluster" "user-service-cluster" {
     name = "user-service-cluster"
 }
 
+# Load Balancer
+
+data "aws_acm_certificate" "api-cert" {
+    domain = "api.info441.info"
+    most_recent = true 
+    statuses = ["ISSUED"]
+}
+
+resource "aws_security_group" "user-service-lb-sg" {
+    name = "user-service-lb-sg"
+    
+    ingress {
+        protocol = "tcp"
+        from_port = 443
+        to_port = 443
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    egress {
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+}
+
+resource "aws_lb" "user-service-lb" {
+    name = "user-service-lb"
+    internal = false
+    load_balancer_type = "application"
+    security_groups = ["${aws_security_group.user-service-lb-sg.id}"]
+    subnets = ["${data.aws_subnet_ids.default-vpc-subnets.ids}"]   
+}
+
+resource "aws_lb_target_group" "user-service-target-group" {
+    name = "user-service-target-group"
+    target_type = "ip"
+    port = 80
+    protocol = "HTTP"
+    vpc_id = "${data.aws_vpc.default-vpc.id}"
+}
+
+resource "aws_lb_listener" "user-service-listener" {
+    load_balancer_arn = "${aws_lb.user-service-lb.arn}"
+    port = 443
+    protocol = "HTTPS"
+    certificate_arn = "${data.aws_acm_certificate.api-cert.arn}"
+    default_action {
+        type = "forward"
+        target_group_arn = "${aws_lb_target_group.user-service-target-group.arn}"
+    }
+}
+
 # ECS Service
 resource "aws_security_group" "user-service-sg" {
     name = "user-service-sg"
@@ -125,11 +177,17 @@ resource "aws_ecs_service" "user-serivce" {
     name = "user-service"
     task_definition = "${aws_ecs_task_definition.users-taskdef.arn}"
     cluster = "${aws_ecs_cluster.user-service-cluster.arn}"
-    desired_count = 1
+    desired_count = 2
     launch_type = "FARGATE"
     network_configuration = {
         subnets = ["${data.aws_subnet_ids.default-vpc-subnets.ids}"]
         security_groups = ["${aws_security_group.user-service-sg.id}"]
         assign_public_ip = true
     }
+    load_balancer {
+        target_group_arn = "${aws_lb_target_group.user-service-target-group.arn}"
+        container_name = "users"
+        container_port = 80
+    }
+    depends_on = ["aws_lb.user-service-lb"]
 }
