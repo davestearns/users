@@ -78,13 +78,7 @@ resource "aws_ecs_task_definition" "users-taskdef" {
 [{
     "name": "users",
     "image": "davestearns/userservice",
-    "portMappings": [{"containerPort": 80, "hostPort": 80, "protocol": "tcp"}],
-    "environment": [
-        {
-            "name": "REDIS_ADDR", 
-            "value": "${aws_elasticache_cluster.session-cache.cache_nodes.0.address}:${aws_elasticache_cluster.session-cache.cache_nodes.0.port}"
-        }
-    ]
+    "portMappings": [{"containerPort": 80, "hostPort": 80, "protocol": "tcp"}]
 }]
 EOF
     task_role_arn = "${aws_iam_role.user-service-role.arn}"

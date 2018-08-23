@@ -20,7 +20,7 @@ import (
 
 type config struct {
 	Addr          string   `env:"ADDR" envDefault:":80"`
-	RedisAddr     string   `env:"REDIS_ADDR" envDefault:"127.0.0.1:6379"`
+	RedisAddr     string   `env:"REDIS_ADDR" envDefault:"cache.info441.info:6379"`
 	SessionKeys   []string `env:"SESSION_KEYS"`
 	DynamoDBTable string   `env:"DYNAMODB_TABLE" envDefault:"users"`
 	DynamoDBKey   string   `env:"DYNAMODB_KEY" envDefault:"userName"`
